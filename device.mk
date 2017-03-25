@@ -298,30 +298,12 @@ PRODUCT_PACKAGES += \
 
 # Camera
 PRODUCT_PACKAGES += \
-	libshim_camera \
-	NubiaCamera \
-	libmm-omxcore
+    libshim_camera \
+    NubiaCamera \
+    libmm-omxcore
 
 PRODUCT_PACKAGES+=\
-	 libshims_ims
-
-# Wechat Fingerprint Payment
-#PRODUCT_PACKAGES += \
-#    ifaa_soter \
-#	ifaa_fingerprint
-
-#PRODUCT_BOOT_JARS += \
-#    ifaa_soter \
-#	ifaa_fingerprint
-
-# KeyHandler
-#PRODUCT_PACKAGES += \
- #   com.cyanogenmod.keyhandler
-
-#PRODUCT_SYSTEM_SERVER_JARS += com.cyanogenmod.keyhandler
-
-# never dexopt the keyhandler
-#$(call add-product-dex-preopt-module-config,com.cyanogenmod.keyhandler,disable)
+    libshims_ims
 
 # Wifi
 PRODUCT_PACKAGES += \

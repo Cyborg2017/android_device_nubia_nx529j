@@ -30,6 +30,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.preference.PreferenceManager;
@@ -78,20 +79,10 @@ public class Startup extends BroadcastReceiver {
 
                 // Restore nodes to saved preference values
                 for (String pref : Constants.sButtonPrefKeys) {
-                    String value;
-                    String node;
-                    if (Constants.sStringNodePreferenceMap.containsKey(pref)) {
-                        value = Constants.getPreferenceString(context, pref);
-                        node = Constants.sStringNodePreferenceMap.get(pref);
-                    } else {
-                        value = Constants.isPreferenceEnabled(context, pref) ?
-                                "1" : "0";
-                        node = Constants.sBooleanNodePreferenceMap.get(pref);
-                    }
-                    if (!FileUtils.writeLine(node, value)) {
-                        Log.w(TAG, "Write to node " + node +
-                            " failed while restoring saved preference values");
-                    }
+                    String value= Constants.isPreferenceEnabled(context, pref) ?
+                                "0" : "1";
+                    String prop = Constants.sBooleanPropPreferenceMap.get(pref);
+	            SystemProperties.set(prop,value);
                 }
             }
         }
@@ -102,7 +93,7 @@ public class Startup extends BroadcastReceiver {
     }
 
     static boolean hasButtonProcs() {
-        return new File(Constants.BUTTON_SWAP_NODE).exists();
+        return Constants.sButtonPrefKeys.length > 0;
     }
 
     private void disableComponent(Context context, String component) {
