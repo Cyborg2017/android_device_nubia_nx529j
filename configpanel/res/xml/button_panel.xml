@@ -17,8 +17,8 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
-        android:key="button_swap"
-        android:title="@string/button_swap_title"
-        android:summary="@string/button_swap_summary" />
+        android:key="nubia_btn_light"
+        android:title="@string/button_nblight_title"
+        android:summary="@string/button_nblight_summary" />
 
 </PreferenceScreen>
