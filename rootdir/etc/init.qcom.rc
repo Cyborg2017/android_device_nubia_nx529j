@@ -505,7 +505,7 @@ on property:persist.env.fastdorm.enabled=true
 service cnd /system/bin/cnd
     class late_start
     socket cnd stream 660 root inet
-    writepid /dev/cpuset/system-background/task
+    writepid /dev/cpuset/system-background/tasks
 
 service dpmd /system/bin/dpmd
     class main
@@ -744,14 +744,10 @@ service hcidump /system/bin/sh /system/etc/hcidump.sh
     disabled
     oneshot
 
-service poweroffcharge /sbin/poweroffcharge
+service charger /charger
     class charger
-
-service productionmode /sbin/productionmode
-    class core
-    user root
-    disabled
-    oneshot
+    group system graphics
+    seclabel u:r:healthd:s0
 
 service ssr_diag /system/bin/ssr_diag
     class late_start
