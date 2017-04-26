@@ -156,9 +156,9 @@ PRODUCT_PACKAGES += \
     org.codeaurora.camera
 
 # FM
-#PRODUCT_PACKAGES += \
- #   FMRadio \
- #  libfmjni
+PRODUCT_PACKAGES += \
+    FMRadio \
+    libfmjni
 
 PRODUCT_PACKAGES += \
     ConfigPanel
