@@ -889,4 +889,3 @@ service gx_fpd /system/bin/gx_fpd
     class late_start
     user root
     group root system
-    seclabel u:r:goodix:s0
