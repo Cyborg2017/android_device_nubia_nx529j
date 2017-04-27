@@ -108,22 +108,6 @@ PRODUCT_COPY_FILES += \
 #PRODUCT_PACKAGES += \
 #    Gello
 
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/etc/hcidump.sh:system/etc/hcidump.sh \
-    $(LOCAL_PATH)/etc/hsic.control.bt.sh:system/etc/hsic.control.bt.sh \
-    $(LOCAL_PATH)/etc/init.ath3k.bt.sh:system/etc/init.ath3k.bt.sh \
-    $(LOCAL_PATH)/etc/init.crda.sh:system/etc/init.crda.sh \
-    $(LOCAL_PATH)/etc/init.qcom.audio.sh:system/etc/init.qcom.audio.sh \
-    $(LOCAL_PATH)/etc/init.qcom.bt.sh:system/etc/init.qcom.bt.sh \
-    $(LOCAL_PATH)/etc/init.qcom.coex.sh:system/etc/init.qcom.coex.sh \
-    $(LOCAL_PATH)/etc/init.qcom.debug.sh:system/etc/init.qcom.debug.sh \
-    $(LOCAL_PATH)/etc/init.qcom.efs.sync.sh:system/etc/init.qcom.efs.sync.sh \
-    $(LOCAL_PATH)/etc/init.qcom.post_boot.sh:system/etc/init.qcom.post_boot.sh \
-    $(LOCAL_PATH)/etc/init.qcom.sdio.sh:system/etc/init.qcom.sdio.sh \
-    $(LOCAL_PATH)/etc/init.qcom.uicc.sh:system/etc/init.qcom.uicc.sh \
-    $(LOCAL_PATH)/etc/init.qcom.wifi.sh:system/etc/init.qcom.wifi.sh \
-    $(LOCAL_PATH)/etc/init.qcom.zram.sh:system/etc/init.qcom.zram.sh \
-    $(LOCAL_PATH)/etc/init.qti.ims.sh:system/etc/init.qti.ims.sh
 
 # GPS
 PRODUCT_COPY_FILES += \
@@ -242,30 +226,14 @@ PRODUCT_PACKAGES += \
 # Ramdisk
 PRODUCT_PACKAGES += \
     fstab.qcom \
+    init.qcom.bt.sh \
+    init.qcom.power.rc \
+    init.qcom.post_boot.sh \
     init.qcom.sh \
-    init.qcom.bms.sh \
-    init.mdm.sh \
-    init.nubia.sh \
-    init.qcom.syspart_fixup.sh \
-    init.class_main.sh \
-    init.qcom.class_core.sh \
-    init.qcom.early_boot.sh \
-    init.qcom.usb.sh
-
-PRODUCT_PACKAGES += \
     init.qcom.rc \
     init.target.rc \
     init.qcom.usb.rc \
-    init.nubia.extend.usb.rc \
-    init.nubia.usb.rc \
     ueventd.qcom.rc
-
-PRODUCT_PACKAGES += \
-    e2image_blocks \
-    filefrag_blocks \
-    mdtp_fota \
-    poweroffcharge \
-    productionmode
 
 # Sensors
 PRODUCT_COPY_FILES += \

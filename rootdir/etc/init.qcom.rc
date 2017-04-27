@@ -25,8 +25,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import init.nubia.usb.rc
-import init.nubia.extend.usb.rc
+import init.qcom.power.rc
+import init.qcom.usb.rc
 import init.target.rc
 
 on early-init
@@ -63,8 +63,6 @@ on early-boot
     write /sys/kernel/codec_type/boot ${persist.sys.external}
     write /sys/kernel/boot_adsp/boot 1
     chown root audio /sys/kernel/boot_adsp/boot
-
-    exec -- /init.qcom.early_boot.sh
 
 on boot
 
@@ -318,20 +316,11 @@ on boot
 
 # msm specific files that need to be created on /data
 on post-fs-data
-    #Create directories for Fingerprint
-    mkdir /data/misc/stargate 0770 system system
-    mkdir /data/misc/stargate/bg_estimation 0770 system system
-    mkdir /data/misc/stargate/calib_test 0770 system system
-    mkdir /data/misc/stargate/database 0770 system system
-
     # Create directory for TZ Apps
     mkdir /data/misc/qsee 0770 system system
 
     # we will remap this as /mnt/sdcard with the sdcard fuse tool
     mkdir /data/misc/camera 0770 camera camera
-
-    mkdir /data/media 0770 media_rw media_rw
-    chown media_rw media_rw /data/media
 
     mkdir /data/misc/ipa 0700 net_admin net_admin
 
@@ -347,6 +336,8 @@ on post-fs-data
     # Create the directories used by CnE subsystem
     mkdir /data/connectivity 0771 system system
     chown system system /data/connectivity
+    mkdir /data/connectivity/wqeclient 0771 system system
+    chown system system /data/connectivity/wqeclient
 
     # Create the directories used by DPM subsystem
     mkdir /data/dpm 0771 system system
@@ -422,12 +413,10 @@ on post-fs-data
     mkdir /data/system/perfd 0770 root system
     chmod 2770 /data/system/perfd
 
-    # NFC local data and nfcee xml storage
-    mkdir /data/nfc 0770 nfc nfc
-    mkdir /data/nfc/param 0770 nfc nfc
-
     # Sensor
     mkdir /persist/sensors 0770 system system
+    chmod 664 /persist/sensors/sensors_settings
+    chown system root /persist/sensors/sensors_settings
 
     # RIDL data
     mkdir /data/misc/SelfHost/ 0710 system shell
@@ -437,27 +426,14 @@ on post-fs-data
     mkdir /data/misc/SelfHost/Running/ 2750 system shell
     mkdir /data/misc/SelfHost/socket/ 2770 system system
 
+    #Create FM dir for patchdownloader
+    mkdir /data/misc/fm 0770 system system
+    chmod 0770 /data/misc/fm
+
 service qcomsysd /system/bin/qcom-system-daemon
     class main
     user root
     group root qcom_diag
-
-# ztemt Disable SSR to SoC restart
-on property:persist.sys.ssr.restart_level=1
-    write /sys/bus/msm_subsys/devices/subsys0/restart_level system
-    write /sys/bus/msm_subsys/devices/subsys1/restart_level system
-    write /sys/bus/msm_subsys/devices/subsys2/restart_level system
-    write /sys/bus/msm_subsys/devices/subsys3/restart_level system
-
-# Enable SSR
-on property:persist.sys.ssr.restart_level=3
-    write /sys/bus/msm_subsys/devices/subsys0/restart_level related
-    write /sys/bus/msm_subsys/devices/subsys1/restart_level related
-    write /sys/bus/msm_subsys/devices/subsys2/restart_level related
-    write /sys/bus/msm_subsys/devices/subsys3/restart_level related
-
-on property:persist.sys.ap.restart_level=*
-    write /sys/module/msm_poweroff/parameters/download_mode ${persist.sys.ap.restart_level}
 
 service ssr_setup /system/bin/ssr_setup
     oneshot
@@ -482,34 +458,29 @@ on property:persist.sys.ssr.enable_ramdumps=0
 
 on property:sys.boot_completed=1
     write /dev/kmsg "Boot completed "
+    write /sys/block/dm-0/queue/read_ahead_kb 128
 
+    # CPE fw_name used by sound trigger HAL
+    chown media audio /sys/kernel/wcd_cpe0/fw_name
 
-service qcom-c_core-sh /system/bin/sh /init.qcom.class_core.sh
-    class core
-    user root
-    oneshot
-
-service qcom-c_main-sh /system/bin/sh /init.class_main.sh
-    class main
-    user root
-    oneshot
 
 on property:vold.decrypt=trigger_restart_framework
-    start qcom-c_main-sh
     start config_bluetooth
     start wcnss-service
+    start config_bt_addr
 
 on property:persist.env.fastdorm.enabled=true
     setprop persist.radio.data_no_toggle 1
 
 service cnd /system/bin/cnd
-    class late_start
+    class main
     socket cnd stream 660 root inet
     writepid /dev/cpuset/system-background/tasks
 
 service dpmd /system/bin/dpmd
-    class main
+    class late_start
     socket dpmd stream 660 root system
+    group system readproc
 
 service irsc_util /system/bin/irsc_util "/etc/sec_config"
     class main
@@ -537,6 +508,7 @@ service start_hci_filter /system/bin/wcnss_filter
     user root
     group bluetooth qcom_diag
     disabled
+    writepid /dev/cpuset/system-background/tasks
 
 service config_bt_addr /system/bin/btnvtool -O
     class core
@@ -561,6 +533,11 @@ on property:bluetooth.hciattach=true
 
 on property:bluetooth.hciattach=false
     setprop bluetooth.status off
+
+service qcom-sh /system/bin/sh /init.qcom.sh
+    class late_start
+    user root
+    oneshot
 
 # QMUX must be in multiple groups to support external process connections
 service qmuxd /system/bin/qmuxd
@@ -610,12 +587,6 @@ on property:ro.data.large_tcp_window_size=true
 on property:sys.sysctl.tcp_adv_win_scale=*
     write /proc/sys/net/ipv4/tcp_adv_win_scale ${sys.sysctl.tcp_adv_win_scale}
 
-service btwlancoex /system/bin/sh /system/etc/init.qcom.coex.sh
-    class late_start
-    user bluetooth
-    group bluetooth net_bt_admin inet net_admin net_raw
-    disabled
-    oneshot
 
 service p2p_supplicant /system/bin/wpa_supplicant \
     -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf \
@@ -661,13 +632,6 @@ service loc_launcher /system/bin/loc_launcher
     class late_start
     group gps inet net_raw qcom_diag net_admin wifi
 
-service fm_dl /system/bin/sh /system/etc/init.qcom.fm.sh
-    class late_start
-    user system
-    group system
-    disabled
-    oneshot
-
 on property:crypto.driver.load=1
      insmod /system/lib/modules/qce.ko
      insmod /system/lib/modules/qcedev.ko
@@ -684,28 +648,8 @@ service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
     disabled
     oneshot
 
-service wifi-sdio-on /system/bin/sh /system/etc/init.qcom.sdio.sh
-    class late_start
-    group wifi inet
-    disabled
-    oneshot
-
-service wifi-crda /system/bin/sh /system/etc/init.crda.sh
-   class late_start
-   user root
-   disabled
-   oneshot
-
-service config-zram /system/bin/sh /system/etc/init.qcom.zram.sh
-   class late_start
-   user root
-   disabled
-   oneshot
-
 on property:sys.boot_completed=1
     start qcom-post-boot
-    start config-zram
-
 
 service hostapd /system/bin/hostapd -dd /data/hostapd/hostapd.conf
     class late_start
@@ -720,29 +664,20 @@ on property:ro.data.large_tcp_window_size=true
     write /proc/sys/net/ipv4/tcp_adv_win_scale  2
 
 
+service ril-daemon /system/bin/rild
+    class main
+    socket rild stream 660 root radio
+    socket sap_uim_socket1 stream 660 bluetooth bluetooth
+    socket rild-debug stream 660 radio system
+    user root
+    group radio cache inet misc audio sdcard_r sdcard_rw qcom_diag diag log net_raw
+
 service ril-daemon2 /system/bin/rild -c 2
     class main
     socket rild2 stream 660 root radio
     socket rild-debug2 stream 660 radio system
     user root
-    disabled
-    group radio cache inet misc audio sdcard_r sdcard_rw diag qcom_diag log net_raw
-
-service ril-daemon3 /system/bin/rild -c 3
-    class main
-    socket rild3 stream 660 root radio
-    socket rild-debug3 stream 660 radio system
-    user root
-    disabled
-    group radio cache inet misc audio sdcard_r sdcard_rw diag qcom_diag log
-
-
-
-service hcidump /system/bin/sh /system/etc/hcidump.sh
-    user bluetooth
-    group bluetooth system net_bt_admin net_admin
-    disabled
-    oneshot
+    group radio cache inet misc audio sdcard_r sdcard_rw qcom_diag diag log net_raw
 
 service charger /charger
     class charger
@@ -767,23 +702,6 @@ on property:persist.usb.hvdcp.detect=false
     stop hvdcp
 
 
-service qbcharger /charger -m 1
-    disabled
-    oneshot
-
-on property:sys.qbcharger.enable=true
-    write /sys/power/wake_lock QuickBoot
-    start qbcharger
-
-on property:sys.qbcharger.enable=false
-    write /sys/power/wake_unlock QuickBoot
-    stop qbcharger
-
-service bms-sh /system/bin/sh /init.qcom.bms.sh
-    class main
-    user root
-    oneshot
-
 service msm_irqbalance /system/bin/msm_irqbalance -f /system/vendor/etc/msm_irqbalance.conf
     class core
     user root
@@ -796,40 +714,29 @@ service msm_irqbal_lb /system/bin/msm_irqbalance -f /system/vendor/etc/msm_irqba
     group root
     disabled
 
+# Added by nubia 20161006 begin
+#   means of  the value of resstart_level:
+#       SYSTEM  : restart system
+#       RELATED : restart the related subsystem only
+on property:persist.sys.ssr.restart_level=1
+    write /sys/bus/msm_subsys/devices/subsys0/restart_level "SYSTEM"
+    write /sys/bus/msm_subsys/devices/subsys1/restart_level "SYSTEM"
+    write /sys/bus/msm_subsys/devices/subsys2/restart_level "SYSTEM"
+    write /sys/bus/msm_subsys/devices/subsys3/restart_level "SYSTEM"
+on property:persist.sys.ssr.restart_level=3
+    write /sys/bus/msm_subsys/devices/subsys0/restart_level "RELATED"
+    write /sys/bus/msm_subsys/devices/subsys1/restart_level "RELATED"
+    write /sys/bus/msm_subsys/devices/subsys2/restart_level "RELATED"
+    write /sys/bus/msm_subsys/devices/subsys3/restart_level "RELATED"
+#   means of  value of download_mode
+#      0:  restart the system normally
+#      1:  restart the system to download mode for dump
+on property:persist.sys.ap.restart_level=0
+    write /sys/module/msm_poweroff/parameters/download_mode 0
+on property:persist.sys.ap.restart_level=1
+    write /sys/module/msm_poweroff/parameters/download_mode 1
+# Added by nubia 20161006 end
 
-# Coresight early boot service
-service cs-early-boot /system/bin/sh /persist/coresight/qdss.agent.sh early-boot /system/etc/init.qcom.debug.sh
-    class core
-    user root
-    oneshot
-
-# Coresight post boot servive
-service cs-post-boot /system/bin/sh /persist/coresight/qdss.agent.sh
-    user root
-    disabled
-    oneshot
-
-on property:sys.boot_completed=1
-    start cs-post-boot
-
-on property:sys.dbg.coresight.enable=1
-    write /persist/coresight/enable 1
-
-on property:sys.dbg.coresight.enable=0
-    write /persist/coresight/enable 0
-
-
-service power_engine /system/bin/power_engine
-    user root
-    group root
-    class late_init
-    disabled
-
-#dynamic start cpu1-2
-#on property:persist.sys.power_ctrl=1
- #   start power_engine
-#on property:persist.sys.power_ctrl=0
-#   stop power_engine
 
 #This is for TP node.
 service tp_node /system/bin/sh /system/bin/tp_node.sh
@@ -838,46 +745,6 @@ service tp_node /system/bin/sh /system/bin/tp_node.sh
     group root
     oneshot
 # ZTEMT END
-
-#ZTEMT ADD by for fingerprint
-on property:persist.sys.fingerprint.wakeup=yes
-    write /sys/kernel/fingerprint/wake_up 1
-on property:persist.sys.fingerprint.wakeup=no
-    write /sys/kernel/fingerprint/wake_up 0
-
-#ZTEMT END
-
-#LCD display preference added by ztemt
-on property:persist.sys.image.enhance=w
-    write /sys/kernel/lcd_enhance/saturation 24
-
-on property:persist.sys.image.enhance=n
-    write /sys/kernel/lcd_enhance/saturation 25
-
-on property:persist.sys.image.enhance=i
-    write /sys/kernel/lcd_enhance/saturation 26
-
-on property:persist.sys.image.colortmp=w
-    write /sys/kernel/lcd_enhance/colortmp 24
-
-on property:persist.sys.image.colortmp=n
-    write /sys/kernel/lcd_enhance/colortmp 25
-
-on property:persist.sys.image.colortmp=c
-    write /sys/kernel/lcd_enhance/colortmp 26
-
-on property:persist.sys.image.cabc=f
-    write /sys/kernel/lcd_enhance/cabc 23
-
-on property:persist.sys.image.cabc=l
-    write /sys/kernel/lcd_enhance/cabc 24
-
-on property:persist.sys.image.cabc=m
-    write /sys/kernel/lcd_enhance/cabc 25
-
-on property:persist.sys.image.cabc=h
-    write /sys/kernel/lcd_enhance/cabc 26
-#LCD display preference end
 
 service fingerprintd /system/bin/fingerprintd   
     class late_start 
