@@ -35,6 +35,7 @@ namespace V2_1 {
 namespace implementation {
 
 // Supported fingerprint HAL version
+static const uint16_t kVersion = HARDWARE_MODULE_API_VERSION(2, 0);
 static bool is_goodix = false;
 
 using RequestStatus =
@@ -44,9 +45,16 @@ BiometricsFingerprint *BiometricsFingerprint::sInstance = nullptr;
 
 BiometricsFingerprint::BiometricsFingerprint() : mClientCallback(nullptr), mDevice(nullptr) {
     sInstance = this; // keep track of the most recent instance
+    char vend [PROPERTY_VALUE_MAX];
+    property_get("ro.boot.fpsensor", vend, NULL);
 
-    is_goodix = true;
-    mDevice = getWrapperService(BiometricsFingerprint::notify);
+    if (!strcmp(vend, "fpc")) {
+        is_goodix = false;
+        mDevice = openHal();
+    } else {
+        is_goodix = true;
+        mDevice = getWrapperService(BiometricsFingerprint::notify);
+    }
 
     if (!mDevice) {
         ALOGE("Can't open HAL module");
@@ -269,6 +277,12 @@ fingerprint_device_t* BiometricsFingerprint::openHal() {
 
     if (0 != (err = module->common.methods->open(hw_mdl, nullptr, &device))) {
         ALOGE("Can't open fingerprint methods, error: %d", err);
+        return nullptr;
+    }
+
+    if (kVersion != device->version) {
+        // enforce version on new devices because of HIDL@2.1 translation layer
+        ALOGE("Wrong fp version. Expected %d, got %d", kVersion, device->version);
         return nullptr;
     }
 

@@ -130,7 +130,7 @@ PRODUCT_PACKAGES += \
 
 # Fingerprint
 PRODUCT_PACKAGES += \
-    android.hardware.biometrics.fingerprint@2.0-service.nubia_nx529j
+    android.hardware.biometrics.fingerprint@2.0-service-custom
 
 # Gatekeeper HAL
 PRODUCT_PACKAGES += \
