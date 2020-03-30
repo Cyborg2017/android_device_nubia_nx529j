@@ -213,11 +213,6 @@ PROTOBUF_SUPPORTED := true
 TARGET_RIL_VARIANT := caf
 TARGET_PROVIDES_QTI_TELEPHONY_JAR := true
 
-# TWRP
-ifeq ($(WITH_TWRP),true)
-include $(DEVICE_PATH)/twrp.mk
-endif
-
 # Wifi
 WPA_SUPPLICANT_VERSION      := VER_0_8_X
 BOARD_HAS_QCOM_WLAN         := true
