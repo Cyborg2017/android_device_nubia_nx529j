@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-DEVICE_PATH := device/nubia/nx569j
+DEVICE_PATH := device/nubia/nx529j
 
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := msm8952
@@ -22,7 +22,7 @@ TARGET_NO_BOOTLOADER := true
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8952
-TARGET_BOARD_PLATFORM_GPU := qcom-adreno510
+TARGET_BOARD_PLATFORM_GPU := qcom-adreno405
 
 # Architecture
 TARGET_ARCH := arm64
@@ -53,12 +53,11 @@ BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_TAGS_OFFSET := 0x00000100
 BOARD_RAMDISK_OFFSET := 0x01000000
 TARGET_KERNEL_ARCH := arm64
-TARGET_KERNEL_CONFIG := lineageos_nx569j_defconfig
-TARGET_KERNEL_SOURCE := kernel/nubia/msm8976
+TARGET_KERNEL_CONFIG := mokee_nx529j_defconfig
+TARGET_KERNEL_SOURCE := kernel/nubia/msm8952
 
 # ANT+
 BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
-
 
 # Audio
 BOARD_USES_ALSA_AUDIO := true
@@ -163,13 +162,16 @@ TARGET_PROVIDES_KEYMASTER := true
 
 # Lights
 TARGET_PROVIDES_LIBLIGHT := true
-
-# Lineage Hardware
+  
+# MKHW
+BOARD_USES_MOKEE_HARDWARE := true
 BOARD_HARDWARE_CLASS += \
-    $(DEVICE_PATH)/lineagehw
+    $(DEVICE_PATH)/mkhw
+BOARD_HARDWARE_CLASS += hardware/mokee/mkhw
+TARGET_TAP_TO_WAKE_NODE := "/data/tp/easy_wakeup_gesture"
 
 # OTA Assert
-TARGET_OTA_ASSERT_DEVICE := NX569J,NX569H
+TARGET_OTA_ASSERT_DEVICE := nx529j,NX529J
 
 # Partitions
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
@@ -189,7 +191,6 @@ TARGET_PER_MGR_ENABLED := true
 
 # Power
 TARGET_POWERHAL_VARIANT := qcom
-TARGET_TAP_TO_WAKE_NODE := "/sys/class/input/input1/wake_gesture"
 TARGET_HAS_NO_WIFI_STATS := true
 TARGET_USES_INTERACTION_BOOST := true
 
@@ -206,7 +207,6 @@ TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/rootdir/fstab.qcom
 # Render
 OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
 USE_OPENGL_RENDERER := true
-
 
 # RIL
 PROTOBUF_SUPPORTED := true
@@ -231,4 +231,4 @@ WIFI_DRIVER_FW_PATH_AP      := "ap"
 WIFI_DRIVER_FW_PATH_STA := "sta"
 
 # Inherit from the proprietary version
-include vendor/nubia/nx569j/BoardConfigVendor.mk
+include vendor/nubia/nx529j/BoardConfigVendor.mk

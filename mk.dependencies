@@ -1,7 +1,7 @@
 [
   {
-    "repository": "android_kernel_nubia_msm8976",
-    "target_path": "kernel/nubia/msm8976"
+    "repository": "android_kernel_nubia_msm8952",
+    "target_path": "kernel/nubia/msm8952"
   },
   {
     "repository": "android_device_qcom_common",
