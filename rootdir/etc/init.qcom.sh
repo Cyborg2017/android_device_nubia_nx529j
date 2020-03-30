@@ -354,7 +354,7 @@ case "$target" in
 				    fi
 				    ;;
 				"MTP" | "QRD")
-				# commented for nubia nx569j has keys
+				# commented for nubia msm8952/76 devices has keys
 #				       setprop qemu.hw.mainkeys 0
 				       ;;
 		      esac
